@@ -2,39 +2,33 @@ const list = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 module.exports = function solveSudoku(matrix) {
 
-  let changed = false;
+  for (let i = 0; i < 9; i++) {
+    for(let j = 0; j < 9; j++) {
+      if(matrix[i][j] === 0) {
+        const horizontal = list.filter(l => !matrix[i].includes(l));
 
-  do {
-    for (let i = 0; i < 9; i++) {
-      for(let j = 0; j < 9; j++) {
-        if(matrix[i][j] === 0 || !!matrix[i][j].length) {
-          const horizontal = list.filter(l => !matrix[i].includes(l));
-  
-          let vert = getVertical(matrix, j);
-          const vertical = list.filter(l => !vert.includes(l));
-          
-          let quadro = getQuadrat(matrix, i, j);
-          const quadrat = list.filter(l => !quadro.includes(l));
-          
-          let result = horizontal.filter(x => vertical.includes(x) && quadrat.includes(x));
-          
-          if(result.length === 1 || matrix[i][j].length === 1) {
-            let num = matrix[i][j].length === 1 ? matrix[i][j] : result[0];
-            matrix[i][j] = num;
+        let vert = getVertical(matrix, j);
+        const vertical = list.filter(l => !vert.includes(l));
+        
+        let quadro = getQuadrat(matrix, i, j);
+        const quadrat = list.filter(l => !quadro.includes(l));
+        
+        let result = horizontal.filter(x => vertical.includes(x) && quadrat.includes(x));
+        
+        if(result.length === 1) {
+          matrix[i][j] = result[0];
 
-            remove(matrix[i], num);
-            remove(vert, num);
-            remove(quadro, num);
+          remove(matrix[i], result[0]);
+          remove(vert, result[0]);
+          remove(quadro, result[0]);
 
-            changed = true;
-          } else {
-            matrix[i][j] = result;
-          }
+          changed = true;
+        } else {
+          matrix[i][j] = result;
         }
-      }  
-    }
-
-  } while(!changed);
+      }
+    }  
+  }
   
   //console.log(matrix)
   return matrix;
