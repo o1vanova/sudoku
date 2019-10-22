@@ -4,23 +4,15 @@ module.exports = function solveSudoku(matrix) {
 
   for (let i = 0; i < 9; i++) {
     for(let j = 0; j < 9; j++) {
-      if(matrix[i][j] === 0) {
-        const horizontal = list.filter(l => !matrix[i].includes(l));
-
-        let vert = getVertical(matrix, j);
-        const vertical = list.filter(l => !vert.includes(l));
-        
-        let quadro = getQuadrat(matrix, i, j);
-        const quadrat = list.filter(l => !quadro.includes(l));
-        
-        let result = horizontal.filter(x => vertical.includes(x) && quadrat.includes(x));
+      if(matrix[i][j] === 0) {  
+        let result = getCandidats(matrix, i, j)
         
         if(result.length === 1) {
           matrix[i][j] = result[0];
 
           remove(matrix[i], result[0]);
-          remove(vert, result[0]);
-          remove(quadro, result[0]);
+          remove(getVertical(matrix, j), result[0]);
+          remove(getQuadrat(matrix, i, j), result[0]);
 
           changed = true;
         } else {
@@ -29,9 +21,48 @@ module.exports = function solveSudoku(matrix) {
       }
     }  
   }
+
+  if(matrix.some(x => x.some(y => !!y.length))) {
+    let positions = [];
+    
+    for (let i = 0; i < 9; i++) {
+      for(let j = 0; j < 9; j++) {
+        if(!!matrix[i][j].length) {
+          positions.push({row: i, col: j, val: matrix[i][j]});
+        }
+      }
+    }
+    //console.log(positions)
+    solveByPrediction(matrix, positions);
+  }
   
-  //console.log(matrix)
   return matrix;
+}
+
+function solveByPrediction(matrix, positions) {
+  for (let i = 0; i < 9; i++) {
+    for(let j = 0; j < 9; j++) {
+      if(!!matrix[i][j].length || matrix[i][j] === 0) {
+        let candidates = positions.find(x => x.row === i && x.col === j).val;
+        //console.log(candidates)
+
+        for(let k = 0; k < candidates.length; k++) {
+          let prediction = candidates[k]; 
+          if(!matrix[i].includes(prediction) && !getVertical(matrix, j).includes(prediction) && !getQuadrat(matrix, i, j).includes(prediction)) {
+            matrix[i][j] = prediction;
+            if(solveByPrediction(matrix, positions)) {
+              return true;
+            } else {  
+              matrix[i][j] = 0;
+            }
+          }
+        }
+        return false;
+      }
+    }
+  }
+  //console.log(matrix)
+  return true;
 }
 
 function remove(items, number) {
@@ -48,6 +79,18 @@ function remove(items, number) {
       }
     }
   });
+}
+
+function getCandidats(matrix, i, j) {
+  let horizontal = list.filter(l => !matrix[i].includes(l));
+
+  let vert = getVertical(matrix, j);
+  let vertical = list.filter(l => !vert.includes(l));
+        
+  let quadro = getQuadrat(matrix, i, j);
+  let quadrat = list.filter(l => !quadro.includes(l));
+        
+  return horizontal.filter(x => vertical.includes(x) && quadrat.includes(x));
 }
 
 function getVertical(matrix, j) {
